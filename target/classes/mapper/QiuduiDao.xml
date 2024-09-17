@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.QiuduiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.qiudui_name as qiuduiName
+        ,a.qiudui_types as qiuduiTypes
+        ,a.qiudui_address as qiuduiAddress
+        ,a.jiaolian_id as jiaolianId
+        ,a.qiudui_content as qiuduiContent
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.QiuduiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,jiaolian.jiaolian_name as jiaolianName
+        ,jiaolian.jiaolian_phone as jiaolianPhone
+        ,jiaolian.jiaolian_email as jiaolianEmail
+        ,jiaolian.jiaolian_delete as jiaolianDelete
+
+        FROM qiudui  a
+        left JOIN jiaolian jiaolian ON a.jiaolian_id = jiaolian.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test=" params.qiuduiName != '' and params.qiuduiName != null and params.qiuduiName != 'null' ">
+                and a.qiudui_name like CONCAT('%',#{params.qiuduiName},'%')
+            </if>
+            <if test="params.qiuduiTypes != null and params.qiuduiTypes != ''">
+                and a.qiudui_types = #{params.qiuduiTypes}
+            </if>
+            <if test=" params.qiuduiAddress != '' and params.qiuduiAddress != null and params.qiuduiAddress != 'null' ">
+                and a.qiudui_address like CONCAT('%',#{params.qiuduiAddress},'%')
+            </if>
+            <if test="params.jiaolianId != null and params.jiaolianId != ''">
+                and (
+                    a.jiaolian_id = #{params.jiaolianId}
+                )
+            </if>
+            <if test=" params.qiuduiContent != '' and params.qiuduiContent != null and params.qiuduiContent != 'null' ">
+                and a.qiudui_content like CONCAT('%',#{params.qiuduiContent},'%')
+            </if>
+
+                <!-- 判断教练的id不为空 -->
+            <if test=" params.jiaolianIdNotNull != '' and params.jiaolianIdNotNull != null and params.jiaolianIdNotNull != 'null' ">
+                and a.jiaolian_id IS NOT NULL
+            </if>
+            <if test=" params.jiaolianName != '' and params.jiaolianName != null and params.jiaolianName != 'null' ">
+                and jiaolian.jiaolian_name like CONCAT('%',#{params.jiaolianName},'%')
+            </if>
+            <if test=" params.jiaolianPhone != '' and params.jiaolianPhone != null and params.jiaolianPhone != 'null' ">
+                and jiaolian.jiaolian_phone like CONCAT('%',#{params.jiaolianPhone},'%')
+            </if>
+            <if test=" params.jiaolianEmail != '' and params.jiaolianEmail != null and params.jiaolianEmail != 'null' ">
+                and jiaolian.jiaolian_email like CONCAT('%',#{params.jiaolianEmail},'%')
+            </if>
+            <if test="params.jiaolianDeleteStart != null  and params.jiaolianDeleteStart != '' ">
+                <![CDATA[  and jiaolian.jiaolian_delete >= #{params.jiaolianDeleteStart}   ]]>
+            </if>
+            <if test="params.jiaolianDeleteEnd != null  and params.jiaolianDeleteEnd != '' ">
+                <![CDATA[  and jiaolian.jiaolian_delete <= #{params.jiaolianDeleteEnd}   ]]>
+            </if>
+            <if test="params.jiaolianDelete != null  and params.jiaolianDelete != '' ">
+                and jiaolian.jiaolian_delete = #{params.jiaolianDelete}
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
